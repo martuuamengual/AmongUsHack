@@ -9,21 +9,26 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DirectX_Renderer;
+using System.Runtime.InteropServices;
 
 namespace YourCheat
 {
     class Program
     {
-        static int tableWidth = 75;
+        static int tableWidth = 100;
 
-       
-        static List<PlayerData> playerDatas = new List<PlayerData>(); 
+        static Task initCheatTask = null;
+        static Dictionary<string, CancellationTokenSource> Tokens = new Dictionary<string, CancellationTokenSource>();
+
+
+        static List<PlayerData> playerDatas = new List<PlayerData>();
+
         static void UpdateCheat()
         {
        
             while (true)
             { 
-                Console.Clear();
+                //Console.Clear();
                 Console.WriteLine("Test Read Player Datas..");
                 PrintRow("offset", "Name", "OwnerId", "PlayerId", "spawnid", "spawnflag", "isImpostor");
                 PrintLine();
@@ -33,63 +38,100 @@ namespace YourCheat
                     if (data.IsLocalPlayer)
                         Console.ForegroundColor = ConsoleColor.Green;
                     if (data.PlayerInfo.Value.IsDead == 1)
-                        Console.ForegroundColor = ConsoleColor.Red; 
+                        Console.ForegroundColor = ConsoleColor.Red;
 
                     var Name = AmongUsMemory.Utils.ReadString(data.PlayerInfo.Value.PlayerName);
-                   PrintRow($"{(data.IsLocalPlayer == true ? "Me->" : "")}{data.offset_str}", $"{Name}", $"{data.Instance.OwnerId}", $"{data.Instance.PlayerId}", $"{data.Instance.SpawnId}", $"{data.Instance.SpawnFlags}", $"{data.PlayerInfo.Value.IsImpostor}");
-                   Console.ForegroundColor = ConsoleColor.White; 
+                   PrintRow($"{(data.IsLocalPlayer == true ? "Me->" : "")}{data.offset_str}", $"{Name}", $"{data.Instance.OwnerId}", $"{data.Instance.PlayerId}", $"{data.Instance.SpawnId}", $"{data.Instance.SpawnFlags}", $"{(data.PlayerInfo.Value.IsImpostor == 1? "Yes" : "No")}");
+                   Console.ForegroundColor = ConsoleColor.White;
+
+                    if (data.PlayerInfo.Value.IsImpostor == 1 && !ValuesDx3.impostorName.Equals(Name)) {
+                        ValuesDx3.impostorName = Name;
+                    }
             
                    PrintLine();
                 }
-                Console.ReadLine();
-                System.Threading.Thread.Sleep(100);
+                System.Threading.Thread.Sleep(5000);
             }
         }
+
         static void Main(string[] args)
         {
-            // Cheat Init
-            if (AmongUsMemory.MemoryData.Init())
-            {
+            while (true) {
+                // Cheat init
+                if (initCheatTask == null) {
 
-                Console.WriteLine("Searching");
+                    Console.WriteLine("Searching for process Among Us.exe");
 
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new ValuesDx3(MemoryData.process));
+                    CancellationTokenSource cts = new CancellationTokenSource();
+                    initCheatTask = Task.Factory.StartNew(
+                        InitCheat
+                    , cts.Token);
 
-                // Update Player Data When Every Game
-                AmongUsMemory.MemoryData.ObserveShipStatus((x) =>
-                {
-                    
-                    foreach(var player in playerDatas)
-                    {
-                        player.StopObserveState();
-                    }
+                    Tokens.Add("InitCheat", cts);
+                }
 
-
-                    playerDatas = AmongUsMemory.MemoryData.GetAllPlayers();
-                    
-                  
-                    foreach (var player in playerDatas)
-                    {
-                        player.onDie += (pos, colorId) => {
-                            Console.WriteLine("OnPlayerDied! Color ID :" + colorId);
-                        }; 
-                        // player state check
-                        player.StartObserveState();
-                    }
-
-                
-                });
-
-                // Cheat Logic
-                CancellationTokenSource cts = new CancellationTokenSource();
-                Task.Factory.StartNew(
-                    UpdateCheat
-                , cts.Token); 
+                System.Threading.Thread.Sleep(250);
             }
+        }
 
-            System.Threading.Thread.Sleep(1000000);
+        static void InitCheat() {
+            while (Tokens.ContainsKey("InitCheat") && Tokens["InitCheat"].IsCancellationRequested == false) {
+
+                if (AmongUsMemory.MemoryData.Init())
+                {
+
+                    // Starts the GUI
+                    Thread thread = new Thread(() => {
+                        Application.EnableVisualStyles();
+                        Application.SetCompatibleTextRenderingDefault(false);
+                        Application.Run(new ValuesDx3(MemoryData.process));
+                    });
+                    thread.SetApartmentState(ApartmentState.STA);
+                    thread.Start();
+
+                    // Update Player Data When Every Game
+                    AmongUsMemory.MemoryData.ObserveShipStatus((x) =>
+                    {
+                        // Enter on join game and on exit game.
+
+                        foreach (var player in playerDatas)
+                        {
+                            player.StopObserveState();
+                        }
+
+                        ValuesDx3.impostorName = "none";
+
+
+                        playerDatas = AmongUsMemory.MemoryData.GetAllPlayers();
+
+
+                        foreach (var player in playerDatas)
+                        {
+                            player.onDie += (pos, colorId) => {
+                                Console.WriteLine("OnPlayerDied! Color ID :" + colorId);
+                            };
+                            // player state check
+                            player.StartObserveState();
+                        }
+
+
+                    });
+
+                    // Cheat Logic
+                    CancellationTokenSource cts = new CancellationTokenSource();
+                    Task.Factory.StartNew(
+                        UpdateCheat
+                    , cts.Token);
+
+
+                    //Ends Init Cheat
+                    if (Tokens.ContainsKey("InitCheat") && Tokens["InitCheat"].IsCancellationRequested == false)
+                    {
+                        Tokens["InitCheat"].Cancel();
+                        Tokens.Remove("InitCheat");
+                    }
+                }
+            }
         }
 
         static void PrintLine()

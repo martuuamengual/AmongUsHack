@@ -41,8 +41,6 @@ namespace DirectX_Renderer
 {
         public partial class Overlay_SharpDX : Form
         {
-            public string labelDX = "Overlay text using direct draw with DirectX";
-
             public Action<WindowRenderTarget> drawCallBack = null;
 
 
@@ -130,7 +128,9 @@ namespace DirectX_Renderer
 
             private void HandleClosed(object sender, EventArgs e)
             {
-                this.Close();
+                this.Invoke((MethodInvoker) delegate {
+                    this.Close();
+                });
             }
 
             private void CheckOverlayStatus()
@@ -195,8 +195,8 @@ namespace DirectX_Renderer
                     PresentOptions = PresentOptions.None
                 };
 
-            //Init DirectX
-            device = new WindowRenderTarget(factory, new RenderTargetProperties(new PixelFormat(Format.B8G8R8A8_UNorm, AlphaMode.Premultiplied)), renderProperties);
+                //Init DirectX
+                device = new WindowRenderTarget(factory, new RenderTargetProperties(new PixelFormat(Format.B8G8R8A8_UNorm, AlphaMode.Premultiplied)), renderProperties);
 
                 // if you want use DirectX direct renderer, you can use this brush and fonts.
                 // of course you can change this as you want.
@@ -205,7 +205,7 @@ namespace DirectX_Renderer
                 _bitmap = Utilities.LoadFromFile(device, "sprite_example.png");
 
 
-            threadDX = new Thread(new ParameterizedThreadStart(_loop_DXThread));
+                threadDX = new Thread(new ParameterizedThreadStart(_loop_DXThread));
 
                 threadDX.Priority = ThreadPriority.Highest;
                 threadDX.IsBackground = true;
@@ -226,10 +226,10 @@ namespace DirectX_Renderer
                     device.Clear(Color.Transparent);
                     device.TextAntialiasMode = SharpDX.Direct2D1.TextAntialiasMode.Aliased;
 
-                    device.DrawText(this.labelDX, font, new SharpDX.Mathematics.Interop.RawRectangleF(5,100,500,30), solidColorBrush);
-
-                    device.DrawBitmap(_bitmap, 1, BitmapInterpolationMode.Linear, new SharpDX.Mathematics.Interop.RawRectangleF(600, 400, 0, 0));
+                    //device.DrawBitmap(_bitmap, 1, BitmapInterpolationMode.Linear, new SharpDX.Mathematics.Interop.RawRectangleF(600, 400, 0, 0));
                     //place your rendering things here
+
+                    // Draw callback form dx
                     drawCallBack.Invoke(device);
 
                     device.EndDraw();

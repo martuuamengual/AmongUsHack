@@ -74,7 +74,7 @@ namespace AmongUsMemory
             var format_length = length * 2;
 
             //string pointer + 12 = value
-            var strByte = MemoryData.mem.ReadBytes(offset.Sum(12).GetAddress(), format_length); 
+            var strByte = MemoryData.mem.ReadBytes(offset.Sum(12).GetAddress(), format_length);
 
             StringBuilder sb = new StringBuilder(); 
             for (int i = 0; i < strByte.Length; i += 2)
@@ -88,6 +88,19 @@ namespace AmongUsMemory
             }
 
             return sb.ToString();
+        }
+
+        public static bool isValidByteArray(byte[] bytes) { 
+            if (bytes == null)
+            {
+                return false;
+            }
+            foreach (var _byte in bytes) {
+                if (_byte == 0) {
+                    return false;
+                }
+            }
+            return true;
         }
 
     }
