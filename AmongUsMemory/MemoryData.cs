@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ThreadHandler;
 
 namespace AmongUsMemory
 {
@@ -131,7 +132,10 @@ namespace AmongUsMemory
 
             Tokens.Add("ObserveShipStatus", cts);
             MemoryData.onChangeShipStatus = onChangeShipStatus;
-            Task.Factory.StartNew(_ObserveShipStatus, cts.Token);
+            var task = Task.Factory.StartNew(_ObserveShipStatus, cts.Token);
+
+            // Catch task Exception
+            task.ContinueWith(ThreadException.Task_UnhandledException, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         public static ShipStatus GetShipStatus()

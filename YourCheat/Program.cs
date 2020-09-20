@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using DirectX_Renderer;
 using System.Runtime.InteropServices;
+using System.Security.Permissions;
+using ThreadHandler;
 
 namespace YourCheat
 {
@@ -25,10 +27,9 @@ namespace YourCheat
 
         static void UpdateCheat()
         {
-       
             while (true)
-            { 
-                //Console.Clear();
+            {
+                Console.Clear();
                 Console.WriteLine("Test Read Player Datas..");
                 PrintRow("offset", "Name", "OwnerId", "PlayerId", "spawnid", "spawnflag", "isImpostor");
                 PrintLine();
@@ -54,8 +55,22 @@ namespace YourCheat
             }
         }
 
+        [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.ControlAppDomain)]
         static void Main(string[] args)
         {
+
+            // Add the event handler for handling UI thread exceptions to the event.
+            Application.ThreadException += new ThreadExceptionEventHandler(ThreadException.UIThreadException);
+
+            // Set the unhandled exception mode to force all Windows Forms errors to go through
+            // our handler.
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+
+            // Add the event handler for handling non-UI thread exceptions to the event.
+            AppDomain.CurrentDomain.UnhandledException +=
+                new UnhandledExceptionEventHandler(ThreadException.CurrentDomain_UnhandledException);
+
+
             while (true) {
                 // Cheat init
                 if (initCheatTask == null) {
@@ -66,6 +81,9 @@ namespace YourCheat
                     initCheatTask = Task.Factory.StartNew(
                         InitCheat
                     , cts.Token);
+
+                    // Catch task Exception
+                    initCheatTask.ContinueWith(ThreadException.Task_UnhandledException, TaskContinuationOptions.OnlyOnFaulted);
 
                     Tokens.Add("InitCheat", cts);
                 }
@@ -119,9 +137,12 @@ namespace YourCheat
 
                     // Cheat Logic
                     CancellationTokenSource cts = new CancellationTokenSource();
-                    Task.Factory.StartNew(
+                    var taskUpdateCheat = Task.Factory.StartNew(
                         UpdateCheat
                     , cts.Token);
+
+                    // Catch task Exception
+                    taskUpdateCheat.ContinueWith(ThreadException.Task_UnhandledException, TaskContinuationOptions.OnlyOnFaulted);
 
 
                     //Ends Init Cheat

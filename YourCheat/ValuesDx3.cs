@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Diagnostics;
 using SharpDX.Direct2D1;
 using SharpDX.DirectWrite;
 using FontFactory = SharpDX.DirectWrite.Factory;
 using SharpDX;
-using System.Threading;
 
 namespace DirectX_Renderer
 {

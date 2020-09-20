@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ThreadHandler;
 
 namespace AmongUsMemory
 {
@@ -135,7 +136,7 @@ namespace AmongUsMemory
             else
             {
                 CancellationTokenSource cts = new CancellationTokenSource(); 
-                Task.Factory.StartNew(() =>
+                var task = Task.Factory.StartNew(() =>
                 {
                     while (true)
                     {
@@ -150,6 +151,9 @@ namespace AmongUsMemory
                         System.Threading.Thread.Sleep(25); 
                     }
                 }, cts.Token);
+
+                // Catch task Exception
+                task.ContinueWith(ThreadException.Task_UnhandledException, TaskContinuationOptions.OnlyOnFaulted);
 
                 Tokens.Add("ObserveState", cts);
             }
