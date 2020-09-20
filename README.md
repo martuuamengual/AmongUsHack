@@ -1,7 +1,6 @@
  
 
 # AmongUsMemory
-![image](https://user-images.githubusercontent.com/49047211/91510992-9581fe00-e919-11ea-8be1-93e333de762b.png)
 
 
  You are responsible any disadvantages caused by use this src. Use only for study. never abuse! please..
