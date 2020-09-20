@@ -10,8 +10,9 @@
   ----------------------
 ## How to Use
  1. Download Source Code
- 2. Go to folder YourCheat/bin/Debug/
- 3. Execute YourCheese.exe
+ 2. Go to folder v1.0-v2020.9.9s-Release/
+ 3. Execute v1.0-v2020.9.9s.exe
+ 4. Enjoy! :)
  
  
  
