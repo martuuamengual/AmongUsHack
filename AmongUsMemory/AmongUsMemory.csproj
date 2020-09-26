@@ -65,5 +65,11 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Overlay\Overlay.csproj">
+      <Project>{d9b423c9-f42a-4dd8-b84c-0aa8af5ba41f}</Project>
+      <Name>Overlay</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

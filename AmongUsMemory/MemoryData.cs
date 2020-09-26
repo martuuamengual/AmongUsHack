@@ -1,4 +1,5 @@
-﻿using ProcessUtil;
+﻿using DirectX_Renderer;
+using ProcessUtil;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,6 +30,7 @@ namespace AmongUsMemory
 
             if (isReady)
             {
+                Overlay_SharpDX_Constants.Restart();
                 Methods.Init();
                 return true;
             }

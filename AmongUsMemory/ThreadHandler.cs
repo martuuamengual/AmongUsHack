@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DirectX_Renderer;
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,8 +73,10 @@ namespace ThreadHandler
 
         public static void Task_UnhandledException(Task task)
         {
-            var exception = task.Exception;
-            Console.WriteLine(exception);
+            if (!Overlay_SharpDX_Constants.ExeWasClosed) {
+                var exception = task.Exception;
+                Console.WriteLine(exception);
+            }
         }
 
         // Creates the error message and displays it.

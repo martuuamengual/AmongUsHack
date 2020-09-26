@@ -27,7 +27,7 @@ namespace YourCheat
 
         static void UpdateCheat()
         {
-            while (true)
+            while (!Overlay_SharpDX_Constants.ExeWasClosed)
             {
                 Console.Clear();
                 Console.WriteLine("Test Read Player Datas..");
@@ -53,6 +53,11 @@ namespace YourCheat
                 }
                 System.Threading.Thread.Sleep(5000);
             }
+
+            if (Overlay_SharpDX_Constants.ExeWasClosed) {
+                initCheatTask = null;
+            }
+
         }
 
         [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.ControlAppDomain)]

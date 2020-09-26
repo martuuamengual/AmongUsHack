@@ -39,10 +39,19 @@ using System.Diagnostics;
 
 namespace DirectX_Renderer
 {
+
+        public static class Overlay_SharpDX_Constants {
+            public static bool ExeWasClosed = false;
+
+
+            public static void Restart() { 
+                ExeWasClosed = false;
+            }
+        }
+
         public partial class Overlay_SharpDX : Form
         {
             public Action<WindowRenderTarget> drawCallBack = null;
-
 
             private WindowRenderTarget device;
             private HwndRenderTargetProperties renderProperties;
@@ -54,7 +63,6 @@ namespace DirectX_Renderer
             private FontFactory fontFactory;
             private const string fontFamily = "Arial";
             private const float fontSize = 25.0f;
-            private Bitmap _bitmap;
 
             private Thread threadDX = null;
             //DllImports
@@ -129,9 +137,15 @@ namespace DirectX_Renderer
             private void HandleClosed(object sender, EventArgs e)
             {
                 this.Invoke((MethodInvoker) delegate {
+                    this.OnExeClose();
                     this.Close();
                 });
             }
+
+        public virtual void OnExeClose() {
+            Overlay_SharpDX_Constants.ExeWasClosed = true;
+            return;
+        }
 
             private void CheckOverlayStatus()
             {
@@ -202,7 +216,6 @@ namespace DirectX_Renderer
                 // of course you can change this as you want.
                 solidColorBrush = new SolidColorBrush(device, Color.Red);
                 font = new TextFormat(fontFactory, fontFamily, fontSize);
-                _bitmap = Utilities.LoadFromFile(device, "sprite_example.png");
 
 
                 threadDX = new Thread(new ParameterizedThreadStart(_loop_DXThread));
