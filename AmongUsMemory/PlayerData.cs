@@ -148,7 +148,7 @@ namespace AmongUsMemory
                                 onDie?.Invoke(Position, PlayerInfo.Value.ColorId);
                             }
                         }
-                        System.Threading.Thread.Sleep(25); 
+                        System.Threading.Thread.Sleep(1000); 
                     }
                 }, cts.Token);
 

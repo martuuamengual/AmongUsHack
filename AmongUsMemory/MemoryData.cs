@@ -108,8 +108,12 @@ namespace AmongUsMemory
             while (Tokens.ContainsKey("ObserveShipStatus") && Tokens["ObserveShipStatus"].IsCancellationRequested == false)
             {
                 Thread.Sleep(250);
-                shipStatus = MemoryData.GetShipStatus();
-                if (prevShipStatus.OwnerId != shipStatus.OwnerId)
+                ShipStatus shipStatus = new ShipStatus();
+                shipStatus.OnMatchStart((ShipStatus current) => {
+                    Console.WriteLine("NetId has changed!");
+                    onChangeShipStatus?.Invoke((uint)100);
+                });
+                /*if (prevShipStatus.OwnerId != shipStatus.OwnerId)
                 {
                     prevShipStatus = shipStatus;
                     onChangeShipStatus?.Invoke(shipStatus.Type);
@@ -118,7 +122,7 @@ namespace AmongUsMemory
                 else
                 { 
 
-                }
+                }*/
             }
         }
 
@@ -141,8 +145,8 @@ namespace AmongUsMemory
         }
 
         public static ShipStatus GetShipStatus()
-        { 
-            ShipStatus shipStatus = new ShipStatus();
+        {
+            /*ShipStatus shipStatus = new ShipStatus();
             byte[] shipAob = MemoryData.mem.ReadBytes(Pattern.ShipStatus_Pointer, Utils.SizeOf<ShipStatus>());
             var aobStr = MakeAobString(shipAob, 4, "00 00 00 00 ??");
             var aobResults = MemoryData.mem.AoBScan(aobStr, true, true); 
@@ -160,12 +164,37 @@ namespace AmongUsMemory
                             if (resultInst.MapScale < 6470545000000 && resultInst.MapScale > 0.1f)
                             {
                                 shipStatus = resultInst;
-                                Console.WriteLine(result.GetAddress());
+                                Console.WriteLine("netId: " + resultInst.NetId);
+                                Console.WriteLine("shipStatusADR: " + result.GetAddress());
                             }
                         }
                     }
                 }  
-            }
+            }*/
+
+            ShipStatus shipStatus = new ShipStatus();
+            shipStatus.OnMatchStart((ShipStatus current) => {
+                Console.WriteLine("NetId has changed!");
+            });
+
+            /*IntPtr GameAssemblyPTR = (IntPtr)Utils.GetModuleAddress("Among Us", Pattern.GameAssembly_Pointer);
+
+            Console.WriteLine(GameAssemblyPTR.ToString("X"));
+            Console.WriteLine(GameAssemblyPTR.GetAddress());
+
+            IntPtr ShipStatusPTR = new IntPtr(Convert.ToInt64(Pattern.ShipStatusPTRStr, 16));
+
+            IntPtr shipStatusPTR = GameAssemblyPTR.Sum(ShipStatusPTR);
+
+            Console.WriteLine("shipStatusPTR: " + shipStatusPTR.GetAddress());
+
+            IntPtr AllVents = shipStatusPTR.Sum(148);
+
+            Console.WriteLine("AllVents: " + AllVents.GetAddress());
+
+            if (AllVents != IntPtr.Zero) {
+                Console.WriteLine("We found!!!");
+            }*/
 
             return shipStatus;
         }

@@ -1,7 +1,11 @@
+using AmongUsMemory;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 
-[System.Runtime.InteropServices.StructLayout(LayoutKind.Explicit)]
+/*[System.Runtime.InteropServices.StructLayout(LayoutKind.Explicit)]
 public struct ShipStatus
 {
     [System.Runtime.InteropServices.FieldOffset(0)]     public uint instance;
@@ -53,4 +57,88 @@ public struct ShipStatus
     [System.Runtime.InteropServices.FieldOffset(204)]   public float Timer;
     [System.Runtime.InteropServices.FieldOffset(208)]   public float EmergencyCooldown;
     [System.Runtime.InteropServices.FieldOffset(212)]   public uint Type;
+}*/
+
+public class ShipStatus {
+
+    private uint _NetId;
+    private IntPtr _AllVents;
+    private float _MapScale;
+
+    public Dictionary<string, CancellationTokenSource> Tokens = new Dictionary<string, CancellationTokenSource>();
+    private Action<ShipStatus> CallBack = null;
+
+    public ShipStatus() {
+        if (Tokens.ContainsKey("StartObserver") && Tokens["StartObserver"].IsCancellationRequested) { 
+            CancellationTokenSource cts = new CancellationTokenSource();
+            var taskUpdateCheat = Task.Factory.StartNew(
+                StartObserver
+            , cts.Token);
+            Tokens.Add("StartObserver", cts);
+        }
+    }
+
+    public uint NetId {
+        get { return _NetId; }
+    }
+
+    public IntPtr AllVents
+    {
+        get { return _AllVents; }
+    }
+
+    public float MapScale
+    {
+        get { return _MapScale; }
+    }
+
+    private void StartObserver() {
+        IntPtr GameAssemblyPTR = (IntPtr)Utils.GetModuleAddress(MemoryData.process, Pattern.GameAssembly_Pointer);
+
+        IntPtr ShipStatusPTR = new IntPtr(Convert.ToInt64(Pattern.ShipStatusPTRStr, 16));
+
+        //https://stackoverflow.com/questions/63949242/memory-address-knowing-the-offsets-and-the-base-address-of-a-dll-how-can-i-obta
+
+        uint currentNetId = 0;
+        if (currentNetId != this._NetId) {
+            if (Tokens.ContainsKey("StartObserver") && !Tokens["StartObserver"].IsCancellationRequested) {
+                this._NetId = currentNetId;
+                GetAndSet_AllVents();
+                GetAndSet_MapScale();
+                OnNetIdChange();
+            }
+        }
+    }
+
+    public void StopObserver()
+    {
+        if (Tokens.ContainsKey("StartObserver") && !Tokens["StartObserver"].IsCancellationRequested)
+        {
+            Console.WriteLine("Stoping StartObserver!!");
+            Tokens["StartObserver"].Cancel();
+            Tokens.Remove("StartObserver");
+        }
+    }
+
+
+    public void OnNetIdChange() {
+        CallBack?.Invoke(this);
+        StopObserver();
+    }
+
+    public void OnMatchStart(Action<ShipStatus> callback)
+    {
+        if (CallBack == null) {
+            this.CallBack = callback;
+        }
+    }
+
+    private void GetAndSet_AllVents() { 
+        
+    }
+
+    private void GetAndSet_MapScale()
+    {
+
+    }
 }

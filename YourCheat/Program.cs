@@ -29,7 +29,7 @@ namespace YourCheat
         {
             while (!Overlay_SharpDX_Constants.ExeWasClosed)
             {
-                Console.Clear();
+                //Console.Clear();
                 Console.WriteLine("Test Read Player Datas..");
                 PrintRow("offset", "Name", "OwnerId", "PlayerId", "spawnid", "spawnflag", "isImpostor");
                 PrintLine();
@@ -93,7 +93,7 @@ namespace YourCheat
                     Tokens.Add("InitCheat", cts);
                 }
 
-                System.Threading.Thread.Sleep(250);
+                System.Threading.Thread.Sleep(1000);
             }
         }
 

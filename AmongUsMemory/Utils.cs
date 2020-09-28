@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
+using System.Diagnostics;
 
 namespace AmongUsMemory
 {
@@ -101,6 +102,15 @@ namespace AmongUsMemory
                 }
             }
             return true;
+        }
+
+        public static int GetModuleAddress(Process process, String dllName)
+        {
+            foreach (ProcessModule pm in process.Modules) {
+                if (pm.ModuleName.Equals(dllName))
+                    return (int)pm.BaseAddress;
+            }
+            return 0;
         }
 
     }
