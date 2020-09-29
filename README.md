@@ -29,7 +29,7 @@
 
 Now you can also enjoy the new private hack that I am developing that will have a Mini-Map 2d, possibility of changing 
 the speed of the character to your liking from a graphical interface within the same game, you can always become the 
-impostor, configure the kill cooldown murder etc etc. If you want to know more join our discord [Join Now](https://discord.gg/CeqAU7)
+impostor, configure the kill cooldown murder etc etc. If you want to know more join our discord [Join Now](https://discord.gg/QAvnjzT)
 
 ----------------------
  
