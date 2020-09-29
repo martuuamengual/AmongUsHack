@@ -115,6 +115,9 @@ namespace YourCheat
                     // Update Player Data When Every Game
                     AmongUsMemory.MemoryData.ObserveShipStatus((x) =>
                     {
+
+                        Console.WriteLine("Done!");
+
                         // Enter on join game and on exit game.
 
                         foreach (var player in playerDatas)

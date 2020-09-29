@@ -64,6 +64,7 @@ namespace AmongUsMemory
                     }
                 }
                 string version = System.Text.Encoding.UTF8.GetString(versionBytes);
+                Console.WriteLine(version);
                 if (version != VERSION_GAME || isTimeOut)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
@@ -97,8 +98,7 @@ namespace AmongUsMemory
             return false;
         }
 
-        private static ShipStatus prevShipStatus;
-        private static ShipStatus shipStatus;
+        //private static ShipStatus shipStatus;
         static Dictionary<string, CancellationTokenSource> Tokens = new Dictionary<string, CancellationTokenSource>();
         static System.Action<uint> onChangeShipStatus;
 
@@ -108,21 +108,17 @@ namespace AmongUsMemory
             while (Tokens.ContainsKey("ObserveShipStatus") && Tokens["ObserveShipStatus"].IsCancellationRequested == false)
             {
                 Thread.Sleep(250);
+                Console.WriteLine("ObserveShipStatus-1");
                 ShipStatus shipStatus = new ShipStatus();
                 shipStatus.OnMatchStart((ShipStatus current) => {
-                    Console.WriteLine("NetId has changed!");
+                    Console.WriteLine("Mach starts!");
                     onChangeShipStatus?.Invoke((uint)100);
                 });
-                /*if (prevShipStatus.OwnerId != shipStatus.OwnerId)
-                {
-                    prevShipStatus = shipStatus;
-                    onChangeShipStatus?.Invoke(shipStatus.Type);
-                    Console.WriteLine("OnShipStatusChanged");
-                }
-                else
-                { 
 
-                }*/
+                shipStatus.OnMatchEnd((ShipStatus current) => {
+                    Console.WriteLine("Match ends!");
+                    shipStatus = null;
+                });
             }
         }
 
@@ -142,61 +138,6 @@ namespace AmongUsMemory
 
             // Catch task Exception
             task.ContinueWith(ThreadException.Task_UnhandledException, TaskContinuationOptions.OnlyOnFaulted);
-        }
-
-        public static ShipStatus GetShipStatus()
-        {
-            /*ShipStatus shipStatus = new ShipStatus();
-            byte[] shipAob = MemoryData.mem.ReadBytes(Pattern.ShipStatus_Pointer, Utils.SizeOf<ShipStatus>());
-            var aobStr = MakeAobString(shipAob, 4, "00 00 00 00 ??");
-            var aobResults = MemoryData.mem.AoBScan(aobStr, true, true); 
-            aobResults.Wait();
-
-            // Filter to wait to init game and dont get wrong ship structure data
-            if (aobResults.Result.Count() < 100) {
-                foreach (var result in aobResults.Result)
-                {
-                    byte[] resultByte = MemoryData.mem.ReadBytes(result.GetAddress(), Utils.SizeOf<ShipStatus>());
-                    if (resultByte != null) {
-                        ShipStatus resultInst = Utils.FromBytes<ShipStatus>(resultByte);
-                        if (resultInst.AllVents != IntPtr.Zero && resultInst.NetId < uint.MaxValue - 10000)
-                        {
-                            if (resultInst.MapScale < 6470545000000 && resultInst.MapScale > 0.1f)
-                            {
-                                shipStatus = resultInst;
-                                Console.WriteLine("netId: " + resultInst.NetId);
-                                Console.WriteLine("shipStatusADR: " + result.GetAddress());
-                            }
-                        }
-                    }
-                }  
-            }*/
-
-            ShipStatus shipStatus = new ShipStatus();
-            shipStatus.OnMatchStart((ShipStatus current) => {
-                Console.WriteLine("NetId has changed!");
-            });
-
-            /*IntPtr GameAssemblyPTR = (IntPtr)Utils.GetModuleAddress("Among Us", Pattern.GameAssembly_Pointer);
-
-            Console.WriteLine(GameAssemblyPTR.ToString("X"));
-            Console.WriteLine(GameAssemblyPTR.GetAddress());
-
-            IntPtr ShipStatusPTR = new IntPtr(Convert.ToInt64(Pattern.ShipStatusPTRStr, 16));
-
-            IntPtr shipStatusPTR = GameAssemblyPTR.Sum(ShipStatusPTR);
-
-            Console.WriteLine("shipStatusPTR: " + shipStatusPTR.GetAddress());
-
-            IntPtr AllVents = shipStatusPTR.Sum(148);
-
-            Console.WriteLine("AllVents: " + AllVents.GetAddress());
-
-            if (AllVents != IntPtr.Zero) {
-                Console.WriteLine("We found!!!");
-            }*/
-
-            return shipStatus;
         }
 
         private static Exception Exception(string v)

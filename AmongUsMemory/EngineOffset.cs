@@ -6,7 +6,7 @@ namespace AmongUsMemory
         /// Get PlayerControl
         /// </summary>
         public static string GameAssembly_Pointer = "GameAssembly.dll";
-        public static string ShipStatusPTRStr = "DA5A50";
+        public static string ShipStatusPTRStr = "146885C";
 
         public static string PlayerControl_Pointer = "GameAssembly.dll+DA5A84";
         public static string ShipStatus_Pointer = "GameAssembly.dll+146885C";

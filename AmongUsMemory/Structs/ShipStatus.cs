@@ -1,6 +1,7 @@
 using AmongUsMemory;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,22 +60,44 @@ public struct ShipStatus
     [System.Runtime.InteropServices.FieldOffset(212)]   public uint Type;
 }*/
 
+
+public static class ShipStatusThreads {
+
+    public static Dictionary<string, CancellationTokenSource> Tokens = new Dictionary<string, CancellationTokenSource>();
+    public static Action<ShipStatus> onMatchStartsCallBack = null;
+    public static Action<ShipStatus> onMatchEndCallBack = null;
+    public static IntPtr BASE_SHIP_STATUS_PTR = IntPtr.Zero;
+
+    public static List<IntPtr> ShipStatusBase_Offsets = new List<IntPtr> {
+                (IntPtr)0x50, // offset0
+                (IntPtr)0x20, // offset1
+                (IntPtr)0x20, // offset2
+                (IntPtr)0x50, // offset3
+                (IntPtr)0x64, // offset4
+                (IntPtr)0x8 // offset5
+            };
+
+}
+
+
 public class ShipStatus {
 
     private uint _NetId;
     private IntPtr _AllVents;
     private float _MapScale;
 
-    public Dictionary<string, CancellationTokenSource> Tokens = new Dictionary<string, CancellationTokenSource>();
-    private Action<ShipStatus> CallBack = null;
+    public bool isMatchStarted = false;
 
     public ShipStatus() {
-        if (Tokens.ContainsKey("StartObserver") && Tokens["StartObserver"].IsCancellationRequested) { 
+        if (!ShipStatusThreads.Tokens.ContainsKey("StartObserver")) {
+            // we get the base pointer of shipstatus
+            ShipStatusThreads.BASE_SHIP_STATUS_PTR = Utils.GetSumOfAddressFromMemory(MemoryData.process, Pattern.ShipStatus_Pointer);
+
             CancellationTokenSource cts = new CancellationTokenSource();
             var taskUpdateCheat = Task.Factory.StartNew(
-                StartObserver
+                new Action(StartObserver)
             , cts.Token);
-            Tokens.Add("StartObserver", cts);
+            ShipStatusThreads.Tokens.Add("StartObserver", cts);
         }
     }
 
@@ -93,48 +116,94 @@ public class ShipStatus {
     }
 
     private void StartObserver() {
-        IntPtr GameAssemblyPTR = (IntPtr)Utils.GetModuleAddress(MemoryData.process, Pattern.GameAssembly_Pointer);
 
-        IntPtr ShipStatusPTR = new IntPtr(Convert.ToInt64(Pattern.ShipStatusPTRStr, 16));
+        while (ShipStatusThreads.Tokens.ContainsKey("StartObserver") && !ShipStatusThreads.Tokens["StartObserver"].IsCancellationRequested) {
+            Thread.Sleep(250);
 
-        //https://stackoverflow.com/questions/63949242/memory-address-knowing-the-offsets-and-the-base-address-of-a-dll-how-can-i-obta
+            List<IntPtr> NetId_Offsets = new List<IntPtr>(ShipStatusThreads.ShipStatusBase_Offsets);
+            NetId_Offsets.Add((IntPtr)0x10);
 
-        uint currentNetId = 0;
-        if (currentNetId != this._NetId) {
-            if (Tokens.ContainsKey("StartObserver") && !Tokens["StartObserver"].IsCancellationRequested) {
-                this._NetId = currentNetId;
-                GetAndSet_AllVents();
-                GetAndSet_MapScale();
+            IntPtr netIdPtr = Utils.GetPtrFromOffsets(ShipStatusThreads.BASE_SHIP_STATUS_PTR, NetId_Offsets.ToArray());
+
+            if (netIdPtr.IsValid()) {
+
+                uint currentNetId = (uint)MemoryData.mem.ReadInt(netIdPtr.GetAddress());
+
+                if (currentNetId < 100000 && currentNetId != this._NetId)
+                {
+                    if (ShipStatusThreads.Tokens.ContainsKey("StartObserver") && !ShipStatusThreads.Tokens["StartObserver"].IsCancellationRequested)
+                    {
+                        this._NetId = currentNetId;
+                        GetAndSet_AllVents();
+                        GetAndSet_MapScale();
+                        OnNetIdChange();
+                    }
+                }
+                else if (currentNetId == this._NetId && !isMatchStarted) {
+                    OnNetIdChange();
+                }
+
+            } else if (isMatchStarted) {
                 OnNetIdChange();
             }
         }
+
+
     }
 
     public void StopObserver()
     {
-        if (Tokens.ContainsKey("StartObserver") && !Tokens["StartObserver"].IsCancellationRequested)
+        if (ShipStatusThreads.Tokens.ContainsKey("StartObserver") && !ShipStatusThreads.Tokens["StartObserver"].IsCancellationRequested)
         {
             Console.WriteLine("Stoping StartObserver!!");
-            Tokens["StartObserver"].Cancel();
-            Tokens.Remove("StartObserver");
+            ShipStatusThreads.Tokens["StartObserver"].Cancel();
+            ShipStatusThreads.Tokens.Remove("StartObserver");
         }
     }
 
 
     public void OnNetIdChange() {
-        CallBack?.Invoke(this);
-        StopObserver();
+        if (!isMatchStarted)
+        {
+            ShipStatusThreads.onMatchStartsCallBack?.Invoke(this);
+            isMatchStarted = true;
+        }
+        else {
+            ShipStatusThreads.onMatchEndCallBack?.Invoke(this);
+            isMatchStarted = false;
+        }
     }
 
     public void OnMatchStart(Action<ShipStatus> callback)
     {
-        if (CallBack == null) {
-            this.CallBack = callback;
+        if (ShipStatusThreads.onMatchStartsCallBack == null) {
+            ShipStatusThreads.onMatchStartsCallBack = callback;
         }
     }
 
-    private void GetAndSet_AllVents() { 
-        
+
+    public void OnMatchEnd(Action<ShipStatus> callback) {
+        if (ShipStatusThreads.onMatchEndCallBack == null)
+        {
+            ShipStatusThreads.onMatchEndCallBack = callback;
+        }
+    }
+
+    private void GetAndSet_AllVents() {
+
+        /*IntPtr[] AllVents_Offsets = {
+                (IntPtr)0x50, // offset0
+                (IntPtr)0x8, // offset1
+                (IntPtr)0x28, // offset2
+                (IntPtr)0x5C, // offset3
+                (IntPtr)0x0, // offset4
+                (IntPtr)0x94, // offset5
+                (IntPtr)0x0 // offset6 - Final Offset
+            };
+
+        IntPtr allVentsPtr = Utils.GetPtrFromOffsets(ShipStatusThreads.BASE_SHIP_STATUS_PTR, AllVents_Offsets);
+
+        Console.WriteLine(allVentsPtr.GetAddress());*/
     }
 
     private void GetAndSet_MapScale()
