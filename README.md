@@ -2,12 +2,13 @@
 
 # AmongUsHack
 
+DISCLAIMER:
 
- You are responsible any disadvantages caused by use this src. Use only for study. never abuse! please..
+ The creator shall not be held responsible for any unforeseen circumstances or disadvantage caused by using this src. This is just for educational and experimental purpose and should not be used to gain unfair advantage over others.
   
- If game updated maybe then require offset update, please contact me or read [How to find Offsets](https://github.com/martuuamengual/AmongUsHack#how-to-find-offsets)
+ If the game is updated in the future then maybe it will require offset update, please contact me or read [How to find Offsets](https://github.com/martuuamengual/AmongUsHack#how-to-find-offsets)
  
- special thanks for [shlifedev](https://github.com/shlifedev/AmongUsMemory) who gave me a guide on how to make a cheat.
+ Special thanks to [shlifedev](https://github.com/shlifedev/AmongUsMemory) who guided me throughout
  
 ## Features
  * Show in UI the name of the impostor.
