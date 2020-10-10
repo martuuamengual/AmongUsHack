@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{D9B423C9-F42A-4DD8-B84C-0AA8AF5BA41F}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Library</OutputType>
     <RootNamespace>Overlay</RootNamespace>
     <AssemblyName>Overlay</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
@@ -31,6 +31,9 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="SharpDX">
@@ -64,15 +67,42 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="External Overlay\Overlay_SharpDX.cs" />
-    <Compile Include="External Overlay\Overlay_SharpDX.Designer.cs">
-      <DependentUpon>Overlay_SharpDX.cs</DependentUpon>
+    <Compile Include="External Overlay\BaseGUI.cs" />
+    <Compile Include="External Overlay\BaseGUI.Designer.cs">
+      <DependentUpon>BaseGUI.cs</DependentUpon>
     </Compile>
-    <Compile Include="Program.cs" />
+    <Compile Include="External Overlay\GUI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="External Overlay\GUI.Designer.cs">
+      <DependentUpon>GUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="External Overlay\ImGUI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="External Overlay\ImGUI.Designer.cs">
+      <DependentUpon>ImGUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="External Overlay\BaseImGUI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="External Overlay\BaseImGUI.Designer.cs">
+      <DependentUpon>BaseImGUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Interfaces\IExeCloseHandler.cs" />
+    <Compile Include="Interfaces\IDragHandler.cs" />
+    <Compile Include="Interfaces\IKeyHandlerPressed.cs" />
+    <Compile Include="KeyHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities.cs" />
-    <EmbeddedResource Include="External Overlay\Overlay_SharpDX.resx">
-      <DependentUpon>Overlay_SharpDX.cs</DependentUpon>
+    <EmbeddedResource Include="External Overlay\BaseGUI.resx">
+      <DependentUpon>BaseGUI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="External Overlay\ImGUI.resx">
+      <DependentUpon>ImGUI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="External Overlay\BaseImGUI.resx">
+      <DependentUpon>BaseImGUI.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

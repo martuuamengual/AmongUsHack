@@ -6,6 +6,7 @@ using System.Text;
 using System.Diagnostics;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using System.Security.Cryptography;
 
 namespace AmongUsMemory
 {
@@ -156,12 +157,30 @@ namespace AmongUsMemory
             {
                 return false;
             }
-            foreach (var _byte in bytes) {
-                if (_byte == 0) {
-                    return false;
-                }
+            if (bytes[0] == 0) {
+                return false;
             }
             return true;
+        }
+
+        public static byte[] clean00FromByteArray(byte[] bytes)
+        {
+            if (bytes == null)
+            {
+                return null;
+            }
+
+            List<byte> cleaned = new List<byte>();
+
+            foreach (var _byte in bytes)
+            {
+                if (_byte != 0)
+                {
+                    cleaned.Add(_byte);
+                }
+            }
+
+            return cleaned.ToArray();
         }
 
         public static int GetModuleAddress(Process process, String dllName)

@@ -139,11 +139,13 @@ public class ShipStatus {
                         OnNetIdChange();
                     }
                 }
-                else if (currentNetId == this._NetId && !isMatchStarted) {
+                else if (currentNetId > 100000 && isMatchStarted) {
+                    // check if the user exits match
                     OnNetIdChange();
                 }
 
             } else if (isMatchStarted) {
+                // check if the user exits match
                 OnNetIdChange();
             }
         }

@@ -5,19 +5,16 @@ namespace AmongUsMemory
         /// <summary>
         /// Get PlayerControl
         /// </summary>
-        public static string GameAssembly_Pointer = "GameAssembly.dll";
-        public static string ShipStatusPTRStr = "146885C";
-
-        public static string PlayerControl_Pointer = "GameAssembly.dll+DA5A84";
+        public static string PlayerControl_Pointer = "GameAssembly.dll+1468910";
         public static string ShipStatus_Pointer = "GameAssembly.dll+146885C";
-        public static string AmongusClient_Pointer = "GameAssembly.dll+DA5ACC";
+        //public static string AmongusClient_Pointer = "GameAssembly.dll+DA5ACC"; // not Updated
         /// <summary>
         /// Get PlayerControl.Get_Data();
         /// </summary>
-        public static string PlayerControl_GetData = "55 8B EC 80 3D BD B0 ??";
+        public static string PlayerControl_GetData = "55 8B EC 80 3D 2A FC ??";
 
 
-        public static string Version_Pointer = "GameAssembly.dll+DA2A9A";
+        public static string Version_Pointer = "GameAssembly.dll+0145EAB4";
         
     }
 } 
