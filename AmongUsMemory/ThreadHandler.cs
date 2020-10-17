@@ -1,4 +1,4 @@
-﻿using DirectX_Renderer;
+﻿using DirectX_Renderer.GUI;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -73,7 +73,7 @@ namespace ThreadHandler
 
         public static void Task_UnhandledException(Task task)
         {
-            if (!Overlay_SharpDX_Constants.ExeWasClosed) {
+            if (!BaseGUI_Constants.GetExeWasClosedValue()) {
                 var exception = task.Exception;
                 Console.WriteLine(exception);
             }

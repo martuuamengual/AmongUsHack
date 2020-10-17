@@ -1,6 +1,8 @@
-﻿namespace DirectX_Renderer
+﻿using System.Drawing;
+
+namespace DirectX_Renderer.GUI
 {
-    public partial class Overlay_SharpDX
+    partial class ImGUI
     {
         /// <summary>
         /// Required designer variable.
@@ -30,24 +32,13 @@
         {
             this.SuspendLayout();
             // 
-            // Overlay_SharpDX
+            // ImGUI
             // 
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(820, 425);
-            this.DoubleBuffered = true;
-            this.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-            this.Name = "Overlay_SharpDX";
-            this.ShowIcon = false;
-            this.ShowInTaskbar = false;
-            this.Text = "Overlay";
-            this.TransparencyKey = System.Drawing.Color.Black;
-            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
-            this.Load += new System.EventHandler(this.Overlay_SharpDX_Load);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.ClientSize = new System.Drawing.Size(1059, 596);
+            this.Name = "ImGUI";
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion

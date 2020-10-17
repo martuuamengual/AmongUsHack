@@ -11,6 +11,33 @@ using ThreadHandler;
 
 namespace AmongUsMemory
 {
+
+    public static class CheatVersion {
+
+        public static string _cheatVersion;
+
+        public static string GetVersion() {
+            return _cheatVersion;
+        }
+
+        public static void SetVersion(string version) {
+            _cheatVersion = version;
+        }
+
+
+    }
+
+
+    public class CheatVersionController {
+
+        public CheatVersionController(string version) {
+            CheatVersion.SetVersion(version);
+        }
+
+    }
+
+
+
     public static class MemoryData
     {
 
@@ -21,16 +48,17 @@ namespace AmongUsMemory
 
         // Constants
 
-        public static string VERSION_GAME = "v2020.9.9s";
+        public static string VERSION_GAME = "v2020.9.22s";
 
 
         public static bool Init()
         {
             var isReady = OpenProcessAndCheckIsReady();
 
+
             if (isReady)
             {
-                Overlay_SharpDX_Constants.Restart();
+                DirectX_Renderer.GUI.BaseGUI_Constants.SetProcess(process);
                 Methods.Init();
                 return true;
             }
@@ -40,7 +68,7 @@ namespace AmongUsMemory
         static bool OpenProcessAndCheckIsReady() {
             var isOpen = OpenProcess("Among Us");
             if (isOpen) {
-                byte[] versionBytes = null;
+                /*byte[] versionBytes = null;
                 int timerLimit = 3;
                 int timerCount = 0;
                 bool isTimeOut = false;
@@ -53,29 +81,43 @@ namespace AmongUsMemory
                     var preventFakeData_State = OpenProcess("Among Us");
                     if (preventFakeData_State)
                     {
-                        versionBytes = MemoryData.mem.ReadBytes(Pattern.Version_Pointer, VERSION_GAME.Length);
+                        IntPtr[] VersionIntPtrOffsetsArray = { 
+                            (IntPtr)0xA90,
+                            (IntPtr)0x5C,
+                            (IntPtr)0x1C,
+                            (IntPtr)0x37C,
+                            (IntPtr)0x4C,
+                            (IntPtr)0xAC
+                        };
+
+                        IntPtr versionBasePtr = Utils.GetSumOfAddressFromMemory(MemoryData.process, Pattern.Version_Pointer);
+
+                        IntPtr versionDataPtr = Utils.GetPtrFromOffsets(versionBasePtr, VersionIntPtrOffsetsArray);
+
+                        versionBytes = MemoryData.mem.ReadBytes(versionDataPtr.GetAddress(), VERSION_GAME.Length*2); // we need to put *2 because in array comes "00" values
                     }
 
                     // Time out
-                    timerCount++;
 
                     if (timerCount == timerLimit+1) {
                         isTimeOut = true;
                     }
                 }
-                string version = System.Text.Encoding.UTF8.GetString(versionBytes);
+
+                    timerCount++;
+                string version = System.Text.Encoding.Unicode.GetString(versionBytes);
                 if (version != VERSION_GAME || isTimeOut)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("IMPORTANT! We detect that the cheat may not work correctly, we recommend to restart it, and if persist please update it to the latest version published.");
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
-                    Console.WriteLine("CHEAT VERSION: " + "v1.0" + "-" + VERSION_GAME);
+                    Console.WriteLine("CHEAT VERSION: " + CheatVersion.GetVersion() + "-" + VERSION_GAME);
                     Console.ForegroundColor = ConsoleColor.White;
                     if (isTimeOut) {
                         Thread.Sleep(100000000);
                         return false;
                     }
-                }
+                }*/
                 return true;
             }
             return false;
@@ -97,8 +139,7 @@ namespace AmongUsMemory
             return false;
         }
 
-        private static ShipStatus prevShipStatus;
-        private static ShipStatus shipStatus;
+        //private static ShipStatus shipStatus;
         static Dictionary<string, CancellationTokenSource> Tokens = new Dictionary<string, CancellationTokenSource>();
         static System.Action<uint> onChangeShipStatus;
 
@@ -108,16 +149,19 @@ namespace AmongUsMemory
             while (Tokens.ContainsKey("ObserveShipStatus") && Tokens["ObserveShipStatus"].IsCancellationRequested == false)
             {
                 Thread.Sleep(250);
-                shipStatus = MemoryData.GetShipStatus();
-                if (prevShipStatus.OwnerId != shipStatus.OwnerId)
-                {
-                    prevShipStatus = shipStatus;
-                    onChangeShipStatus?.Invoke(shipStatus.Type);
-                    Console.WriteLine("OnShipStatusChanged");
-                }
-                else
+                if (!ShipStatusThreads.Tokens.ContainsKey("StartObserver"))
                 { 
+                    ShipStatus shipStatus = new ShipStatus();
+                    shipStatus.OnMatchStart((ShipStatus current) => {
+                        Console.WriteLine("Mach starts!");
+                        onChangeShipStatus?.Invoke((uint)100);
+                    });
 
+                    shipStatus.OnMatchEnd((ShipStatus current) => {
+                        Console.WriteLine("Match ends!");
+                        onChangeShipStatus?.Invoke((uint)100);
+                        shipStatus = null;
+                    });
                 }
             }
         }
@@ -138,36 +182,6 @@ namespace AmongUsMemory
 
             // Catch task Exception
             task.ContinueWith(ThreadException.Task_UnhandledException, TaskContinuationOptions.OnlyOnFaulted);
-        }
-
-        public static ShipStatus GetShipStatus()
-        { 
-            ShipStatus shipStatus = new ShipStatus();
-            byte[] shipAob = MemoryData.mem.ReadBytes(Pattern.ShipStatus_Pointer, Utils.SizeOf<ShipStatus>());
-            var aobStr = MakeAobString(shipAob, 4, "00 00 00 00 ??");
-            var aobResults = MemoryData.mem.AoBScan(aobStr, true, true); 
-            aobResults.Wait();
-
-            // Filter to wait to init game and dont get wrong ship structure data
-            if (aobResults.Result.Count() < 100) {
-                foreach (var result in aobResults.Result)
-                {
-                    byte[] resultByte = MemoryData.mem.ReadBytes(result.GetAddress(), Utils.SizeOf<ShipStatus>());
-                    if (resultByte != null) {
-                        ShipStatus resultInst = Utils.FromBytes<ShipStatus>(resultByte);
-                        if (resultInst.AllVents != IntPtr.Zero && resultInst.NetId < uint.MaxValue - 10000)
-                        {
-                            if (resultInst.MapScale < 6470545000000 && resultInst.MapScale > 0.1f)
-                            {
-                                shipStatus = resultInst;
-                                Console.WriteLine(result.GetAddress());
-                            }
-                        }
-                    }
-                }  
-            }
-
-            return shipStatus;
         }
 
         private static Exception Exception(string v)

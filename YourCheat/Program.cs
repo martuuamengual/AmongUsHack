@@ -12,6 +12,7 @@ using DirectX_Renderer;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
 using ThreadHandler;
+using DirectX_Renderer.GUI;
 
 namespace YourCheat
 {
@@ -27,9 +28,9 @@ namespace YourCheat
 
         static void UpdateCheat()
         {
-            while (!Overlay_SharpDX_Constants.ExeWasClosed)
+            while (!BaseGUI_Constants.GetExeWasClosedValue())
             {
-                Console.Clear();
+                //Console.Clear();
                 Console.WriteLine("Test Read Player Datas..");
                 PrintRow("offset", "Name", "OwnerId", "PlayerId", "spawnid", "spawnflag", "isImpostor");
                 PrintLine();
@@ -42,20 +43,16 @@ namespace YourCheat
                         Console.ForegroundColor = ConsoleColor.Red;
 
                     var Name = AmongUsMemory.Utils.ReadString(data.PlayerInfo.Value.PlayerName);
-                   PrintRow($"{(data.IsLocalPlayer == true ? "Me->" : "")}{data.offset_str}", $"{Name}", $"{data.Instance.OwnerId}", $"{data.Instance.PlayerId}", $"{data.Instance.SpawnId}", $"{data.Instance.SpawnFlags}", $"{(data.PlayerInfo.Value.IsImpostor == 1? "Yes" : "No")}");
-                   Console.ForegroundColor = ConsoleColor.White;
+                    PrintRow($"{(data.IsLocalPlayer == true ? "Me->" : "")}{data.offset_str}", $"{Name}", $"{data.Instance.OwnerId}", $"{data.Instance.PlayerId}", $"{data.Instance.SpawnId}", $"{data.Instance.SpawnFlags}", $"{(data.PlayerInfo.Value.IsImpostor == 1 ? "Yes" : "No")}");
+                    Console.ForegroundColor = ConsoleColor.White;
 
-                    if (data.PlayerInfo.Value.IsImpostor == 1 && !ValuesDx3.impostorName.Equals(Name)) {
+                    /*if (data.PlayerInfo.Value.IsImpostor == 1 && !ValuesDx3.impostorName.Equals(Name)) {
                         ValuesDx3.impostorName = Name;
-                    }
-            
-                   PrintLine();
+                    }*/
+
+                    PrintLine();
                 }
                 System.Threading.Thread.Sleep(5000);
-            }
-
-            if (Overlay_SharpDX_Constants.ExeWasClosed) {
-                initCheatTask = null;
             }
 
         }
@@ -75,6 +72,9 @@ namespace YourCheat
             AppDomain.CurrentDomain.UnhandledException +=
                 new UnhandledExceptionEventHandler(ThreadException.CurrentDomain_UnhandledException);
 
+            // we need to init and set up the version
+            VersionController.InitVersion();
+
 
             while (true) {
                 // Cheat init
@@ -91,9 +91,18 @@ namespace YourCheat
                     initCheatTask.ContinueWith(ThreadException.Task_UnhandledException, TaskContinuationOptions.OnlyOnFaulted);
 
                     Tokens.Add("InitCheat", cts);
+
+
+                    // CHECK STATE CHEAT AND RESTART IF NECESARY
+                    CancellationTokenSource ctsStateCheat = new CancellationTokenSource();
+                    var checkStateCheatTask = Task.Factory.StartNew(
+                        CheckStateCheatAndRestart
+                    , ctsStateCheat.Token);
+                    checkStateCheatTask.ContinueWith(ThreadException.Task_UnhandledException, TaskContinuationOptions.OnlyOnFaulted);
+                    Tokens.Add("CheckStateCheatAndRestart", cts);
                 }
 
-                System.Threading.Thread.Sleep(250);
+                System.Threading.Thread.Sleep(1000);
             }
         }
 
@@ -104,17 +113,16 @@ namespace YourCheat
                 {
 
                     // Starts the GUI
-                    Thread thread = new Thread(() => {
-                        Application.EnableVisualStyles();
-                        Application.SetCompatibleTextRenderingDefault(false);
-                        Application.Run(new ValuesDx3(MemoryData.process));
-                    });
-                    thread.SetApartmentState(ApartmentState.STA);
-                    thread.Start();
+                    //GUIStarter.Init<ValuesDx3>();
+                    GUIStarter.Init<MenuDx3>();
+
 
                     // Update Player Data When Every Game
                     AmongUsMemory.MemoryData.ObserveShipStatus((x) =>
                     {
+
+                        Console.WriteLine("Done!");
+
                         // Enter on join game and on exit game.
 
                         foreach (var player in playerDatas)
@@ -122,7 +130,7 @@ namespace YourCheat
                             player.StopObserveState();
                         }
 
-                        ValuesDx3.impostorName = "none";
+                        //ValuesDx3.impostorName = "none";
 
 
                         playerDatas = AmongUsMemory.MemoryData.GetAllPlayers();
@@ -156,6 +164,24 @@ namespace YourCheat
                         Tokens["InitCheat"].Cancel();
                         Tokens.Remove("InitCheat");
                     }
+                }
+            }
+        }
+
+        public static void CheckStateCheatAndRestart() {
+            while (Tokens.ContainsKey("CheckStateCheatAndRestart") && Tokens["CheckStateCheatAndRestart"].IsCancellationRequested == false)
+            {
+                if (BaseGUI_Constants.GetExeWasClosedValue())
+                {
+                    initCheatTask = null;
+                    BaseGUI_Constants.CleanProcess();
+                    BaseGUI_Constants.CleanExeWasClosedValue();
+                    if (Tokens.ContainsKey("UpdateCheat") && !Tokens["UpdateCheat"].IsCancellationRequested) {
+                        Tokens["UpdateCheat"].Cancel();
+                        Tokens.Remove("UpdateCheat");
+                    }
+                    Tokens["CheckStateCheatAndRestart"].Cancel();
+                    Tokens.Remove("CheckStateCheatAndRestart");
                 }
             }
         }

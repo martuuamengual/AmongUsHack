@@ -3,6 +3,10 @@ using System.Runtime.InteropServices;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
+using System.Diagnostics;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
+using System.Security.Cryptography;
 
 namespace AmongUsMemory
 {
@@ -18,10 +22,68 @@ namespace AmongUsMemory
             return data;
         }
 
+        public static T FromByteArrayToObject<T>(byte[] data)
+        {
+            if (data == null)
+                return default(T);
+            BinaryFormatter bf = new BinaryFormatter();
+            using (MemoryStream ms = new MemoryStream(data))
+            {
+                object obj = bf.Deserialize(ms);
+                return (T)obj;
+            }
+        }
+
+        public static IntPtr FromByteArrayGetAddress(byte[] data)
+        {
+            GCHandle pinnedArray = GCHandle.Alloc(data, GCHandleType.Pinned);
+            IntPtr pointer = pinnedArray.AddrOfPinnedObject();
+            pinnedArray.Free();
+            return pointer;
+        }
+
+        public static IntPtr ConvertStringToIntPtr(string address) {
+            return new IntPtr(Convert.ToInt64(address, 16));
+        }
+
+        public static IntPtr GetSumOfAddressFromMemory(Process process, string address)
+        {
+            string[] addressArray = address.Split('+');
+            List<IntPtr> intPtrList = new List<IntPtr>();
+
+            foreach (string addr in addressArray) {
+                if (addr.Contains('.'))
+                {
+                    // if is .dll or .exe
+                    IntPtr baseAddressPTR = (IntPtr)GetModuleAddress(process, addr);
+                    intPtrList.Add(baseAddressPTR);
+                }
+                else {
+                    IntPtr addrPTR = ConvertStringToIntPtr(addr);
+                    intPtrList.Add(addrPTR);
+                }
+            }
+
+            IntPtr lastPtr = IntPtr.Zero;
+
+            foreach (IntPtr ptr in intPtrList) {
+                lastPtr = lastPtr.Sum(ptr);
+            }
+
+            return lastPtr;
+        }
+
         public static int SizeOf<T>()
         {
             var size = Marshal.SizeOf(typeof(T));
             return size;
+        }
+
+        public static bool IsValid(this IntPtr value) {
+            if (value != null && value != IntPtr.Zero) {
+                return true;
+            }
+            return false;
         }
 
 
@@ -95,12 +157,63 @@ namespace AmongUsMemory
             {
                 return false;
             }
-            foreach (var _byte in bytes) {
-                if (_byte == 0) {
-                    return false;
-                }
+            if (bytes[0] == 0) {
+                return false;
             }
             return true;
+        }
+
+        public static byte[] clean00FromByteArray(byte[] bytes)
+        {
+            if (bytes == null)
+            {
+                return null;
+            }
+
+            List<byte> cleaned = new List<byte>();
+
+            foreach (var _byte in bytes)
+            {
+                if (_byte != 0)
+                {
+                    cleaned.Add(_byte);
+                }
+            }
+
+            return cleaned.ToArray();
+        }
+
+        public static int GetModuleAddress(Process process, String dllName)
+        {
+            foreach (ProcessModule pm in process.Modules) {
+                if (pm.ModuleName.Equals(dllName))
+                    return (int)pm.BaseAddress;
+            }
+            return 0;
+        }
+
+        public static IntPtr GetPtrFromOffsets(IntPtr base_ptr, IntPtr[] offsets) {
+            int valueOfBasePtr = MemoryData.mem.ReadInt(base_ptr.GetAddress());
+            IntPtr base_ptr_value = ConvertStringToIntPtr(valueOfBasePtr.GetAddress());
+
+            IntPtr last_ptr_Value = base_ptr_value;
+
+            for (int i=0; i < offsets.Length-1; i++) {
+                IntPtr current_offset = offsets[i];
+                IntPtr offset = last_ptr_Value.Sum(current_offset);
+                int valueOffset = MemoryData.mem.ReadInt(offset.GetAddress());
+                last_ptr_Value = ConvertStringToIntPtr(valueOffset.GetAddress());
+            }
+
+            IntPtr lastOffset = offsets[offsets.Length - 1];
+            IntPtr valuePtr = last_ptr_Value.Sum(lastOffset);
+
+            // Detects if is valid the pointer value
+            if (valuePtr == lastOffset) {
+                valuePtr = IntPtr.Zero;
+            }
+
+            return valuePtr;
         }
 
     }

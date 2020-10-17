@@ -1,42 +1,13 @@
-﻿// Copyright (c) 2016-2017 DirectX_Renderer - DoxCode - https://github.com/DoxCode
-//
-//
-// This program use SHARPDX as wrapper of the DirectX API.
-// Used version 4.01, of:
-//
-// SharpDX, SharpDX.Desktop, SharpDX.Direct2D1, SharpDX.Direct3D11, SharpDX.DXGI, SharpDX.Mathematics
-//
-// SharpDX is Nugget ready.
-//
-// Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+﻿
 using SharpDX;
 using SharpDX.Direct2D1;
 using SharpDX.DXGI;
 
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing.Imaging;
-//using System.Drawing;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace DirectX_Renderer
@@ -44,9 +15,40 @@ namespace DirectX_Renderer
     class Utilities
     {
 
+        #region dll imports
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
+
+        #endregion
+
+        #region directx needed variables
+
+        public const UInt32 SWP_NOSIZE = 0x0001;
+        public const UInt32 SWP_NOMOVE = 0x0002;
+        public const UInt32 TOPMOST_FLAGS = SWP_NOMOVE | SWP_NOSIZE;
+
+        #endregion
+
         public static System.Drawing.Rectangle GetScreen(Control referenceControl)
         {
             return Screen.FromControl(referenceControl).Bounds;
+        }
+
+        public static System.Drawing.Rectangle GetScreenInvoke(Control referenceControl)
+        {
+            System.Drawing.Rectangle rec = new System.Drawing.Rectangle();
+            referenceControl.Invoke((MethodInvoker)delegate {
+                rec = Screen.FromControl(referenceControl).Bounds;
+            });
+            return rec;
         }
 
         public static Bitmap LoadFromFile(RenderTarget renderTarget, string file)
@@ -87,6 +89,36 @@ namespace DirectX_Renderer
                     return new Bitmap(renderTarget, size, tempStream, stride, bitmapProperties);
                 }
             }
+        }
+
+        public static void CheckOverlayStatus(IntPtr handle, Process process)
+        {
+
+            var isFocused = ApplicationIsActivated(process);
+
+            if (isFocused)
+            {
+                SetWindowPos(handle, new IntPtr(-1), 0, 0, 0, 0, TOPMOST_FLAGS);
+            }
+            else
+            {
+                SetWindowPos(handle, new IntPtr(-2), 0, 0, 0, 0, TOPMOST_FLAGS);
+            }
+        }
+
+        private static bool ApplicationIsActivated(Process process)
+        {
+            var activatedHandle = GetForegroundWindow(); //get the current window that user is focused
+            if (activatedHandle == IntPtr.Zero)
+            {
+                return false;       // No window is currently activated
+            }
+
+            var procId = process.Id;
+            int activeProcId;
+            GetWindowThreadProcessId(activatedHandle, out activeProcId);
+
+            return activeProcId == procId;
         }
 
     }
