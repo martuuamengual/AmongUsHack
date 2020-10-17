@@ -30,9 +30,18 @@ namespace DirectX_Renderer.GUI
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            this.SuspendLayout();
+            // 
+            // ImGUI
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.ClientSize = new System.Drawing.Size(1059, 596);
+            this.Name = "ImGUI";
+            this.ResumeLayout(false);
+            this.PerformLayout();
         }
 
         #endregion
+
     }
 }

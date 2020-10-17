@@ -89,11 +89,16 @@
     <Compile Include="External Overlay\BaseImGUI.Designer.cs">
       <DependentUpon>BaseImGUI.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUIStarter.cs" />
     <Compile Include="Interfaces\IExeCloseHandler.cs" />
     <Compile Include="Interfaces\IDragHandler.cs" />
+    <Compile Include="Interfaces\IOnMouseUp.cs" />
+    <Compile Include="Interfaces\IKeyHandlerUp.cs" />
+    <Compile Include="Interfaces\IKeyHandlerDown.cs" />
     <Compile Include="Interfaces\IKeyHandlerPressed.cs" />
     <Compile Include="KeyHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ThreadException.cs" />
     <Compile Include="Utilities.cs" />
     <EmbeddedResource Include="External Overlay\BaseGUI.resx">
       <DependentUpon>BaseGUI.cs</DependentUpon>

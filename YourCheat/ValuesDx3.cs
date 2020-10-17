@@ -4,8 +4,6 @@ using SharpDX.DirectWrite;
 using FontFactory = SharpDX.DirectWrite.Factory;
 using SharpDX;
 using System;
-using System.Threading;
-using System.Windows.Forms;
 using DirectX_Renderer.Interfaces;
 using DirectX_Renderer.GUI;
 
@@ -29,22 +27,6 @@ namespace YourCheat
         public new void OnExeClose() {
             Console.WriteLine("Among Us.exe was closed!");
         }
-
-    }
-
-
-    public static class ValuesDx3_Controller {
-
-        public static void StartGUI() {
-            Thread thread = new Thread(() => {
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new ValuesDx3());
-            });
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-        }
-
 
     }
 }

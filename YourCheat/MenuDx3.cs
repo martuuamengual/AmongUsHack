@@ -1,8 +1,7 @@
-﻿using DirectX_Renderer;
-using DirectX_Renderer.GUI;
+﻿using DirectX_Renderer.GUI;
+using DirectX_Renderer.Handler;
 using DirectX_Renderer.Interfaces;
 using System;
-using System.Threading;
 using System.Windows.Forms;
 
 namespace YourCheat
@@ -10,36 +9,45 @@ namespace YourCheat
     public partial class MenuDx3 : ImGUI, IKeyHandlerPressed
     {
 
-        private bool isCurrentActive = false;
+        private bool isCurrentActive = true;
 
         public MenuDx3()
         {
             InitializeComponent();
+        }
 
-            KeyHandler keyHandler = new KeyHandler(Keys.Insert);
-            keyHandler.OnKeyPressed += OnKeyPressed;
+        public override void OnLoad(object sender, EventArgs e) {
+            // we need to check if the process is active or not because if we dont checkit VS crash.
+            if (BaseGUI_Constants.GetProcess() != null) {
+
+                this.SetPanel(ConstructPanel());
+
+                KeyHandler keyHandler = new KeyHandler(Keys.Insert);
+                keyHandler.OnKeyPressed += OnKeyPressed;
+            }
+            base.OnLoad(sender, e);
+        }
+
+        private Panel ConstructPanel() {
+            return panel1;
         }
 
         public void OnKeyPressed(object sender, Keys e)
         {
-            Console.WriteLine("Key Pressed!!!");
+            if (isCurrentActive)
+            {
+                this.Invoke((MethodInvoker)delegate {
+                    this.GetPanel().Hide();
+                });
+                isCurrentActive = false;
+            }
+            else {
+                this.Invoke((MethodInvoker)delegate {
+                    this.GetPanel().Show();
+                });
+                isCurrentActive = true;
+            }
         }
     }
 
-    public static class MenuDx3_Controller
-    {
-
-        public static void StartGUI()
-        {
-            Thread thread = new Thread(() => {
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new MenuDx3());
-            });
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-        }
-
-
-    }
 }

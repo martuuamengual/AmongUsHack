@@ -1,5 +1,4 @@
-﻿using DirectX_Renderer;
-using DirectX_Renderer.GUI;
+﻿using DirectX_Renderer.GUI;
 using System;
 using System.Diagnostics;
 using System.Threading;

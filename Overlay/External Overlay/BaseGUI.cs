@@ -1,18 +1,21 @@
 ﻿using Microsoft.CSharp.RuntimeBinder;
-using SharpDX.Direct2D1;
 using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace DirectX_Renderer.GUI
 {
-
+    /// <summary>
+    /// Use this class to get process game atached or if the game was closed.
+    /// <para>This class is used to, for example, hide the UI when the game is minimized</para>
+    /// </summary>
     public static class BaseGUI_Constants {
         private static Process process;
         private static bool ExeWasClosed;
 
+        /// <summary>
+        /// Sets the game process
+        /// </summary>
         public static void SetProcess(Process process)
         {
             if (process != null)
@@ -21,24 +24,39 @@ namespace DirectX_Renderer.GUI
             }
         }
 
+        /// <summary>
+        /// Gets the current game process atached
+        /// </summary>
         public static Process GetProcess()
         {
             return process;
         }
 
+        /// <summary>
+        /// Puts process variable equals to <seealso cref="Nullable">null</seealso>
+        /// </summary>
         public static void CleanProcess()
         {
             process = null;
         }
 
+        /// <summary>
+        /// Sets the exe flag closed to <seealso cref="Boolean">true</seealso>
+        /// </summary>
         public static void SetExeWasClosedValue() {
             ExeWasClosed = true;
         }
 
+        /// <summary>
+        /// Gets the exe flag <seealso cref="Boolean">true</seealso> or <seealso cref="Boolean">false</seealso>
+        /// </summary>
         public static bool GetExeWasClosedValue() {
             return ExeWasClosed;
         }
 
+        /// <summary>
+        /// Sets the exe flag closed to <seealso cref="Boolean">false</seealso>
+        /// </summary>
         public static void CleanExeWasClosedValue()
         {
             ExeWasClosed = false;
@@ -46,12 +64,15 @@ namespace DirectX_Renderer.GUI
 
     }
 
+    /// <summary>
+    /// This class is the base of the overlay DirectX graphs but without the transparent background.
+    /// </summary>
     public partial class BaseGUI : Form
     {
 
         #region variables
 
-        delegate void OverlayIsFocused(IntPtr handle, Process process);
+        private delegate void OverlayIsFocused(IntPtr handle, Process process);
         private System.Threading.Timer timer = null;
 
         #endregion
@@ -63,26 +84,20 @@ namespace DirectX_Renderer.GUI
 
         #endregion
 
-        #region dll imports
-
-        [DllImport("user32.dll")]
-        public static extern int SetWindowLong(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
-
-        #endregion
-
         public BaseGUI()
         {
             InitializeComponent();
         }
 
-        public void OnLoad(object sender, EventArgs e) {
+        public void OnLoad(object sender, EventArgs e)
+        {
             OnStartConstructor();
             OnFinishConstructor();
         }
 
         private void OnStartConstructor() {
-            if (BaseGUI_Constants.GetProcess() != null) { 
-                SetWindowLong(Handle, -8, BaseGUI_Constants.GetProcess().Handle);
+            if (BaseGUI_Constants.GetProcess() != null) {
+                Console.WriteLine("Starting GUI!");
                 OnResize(null);
             }
         }
@@ -91,11 +106,12 @@ namespace DirectX_Renderer.GUI
 
             if (BaseGUI_Constants.GetProcess() != null)
             {
-                var startTimeSpan = TimeSpan.Zero;
-                var periodTimeSpan = TimeSpan.FromMilliseconds(1);
 
                 BaseGUI_Constants.GetProcess().EnableRaisingEvents = true;
                 BaseGUI_Constants.GetProcess().Exited += this.HandleClosed;
+
+                var startTimeSpan = TimeSpan.Zero;
+                var periodTimeSpan = TimeSpan.FromMilliseconds(1);
 
                 timer = new System.Threading.Timer((e) =>
                 {
@@ -112,6 +128,8 @@ namespace DirectX_Renderer.GUI
                     {
                     }
                 }, null, startTimeSpan, periodTimeSpan);
+
+                Console.WriteLine("Finish GUI!");
             }
         }
 

@@ -12,11 +12,18 @@ using DirectX_Renderer.Interfaces;
 
 namespace DirectX_Renderer.GUI
 {
+    /// <summary>
+    /// this class can be used to overlay DirectX graphs
+    /// <para>Use <seealso cref="drawCallBack">drawCallBack</seealso> to draw DirectX graphs</para>
+    /// </summary>
     public partial class GUI : BaseGUI, IExeCloseHandler
     {
 
         #region variables
 
+        /// <summary>
+        /// use this callback to draw what you want in the scren device using DirectX drivers
+        /// </summary>
         public Action<WindowRenderTarget> drawCallBack = null;
 
         #endregion
@@ -24,9 +31,9 @@ namespace DirectX_Renderer.GUI
         #region directx needed variables
 
         //Styles
-        public const UInt32 SWP_NOSIZE = 0x0001;
-        public const UInt32 SWP_NOMOVE = 0x0002;
-        public const UInt32 TOPMOST_FLAGS = SWP_NOMOVE | SWP_NOSIZE;
+        private const UInt32 SWP_NOSIZE = 0x0001;
+        private const UInt32 SWP_NOMOVE = 0x0002;
+        private const UInt32 TOPMOST_FLAGS = SWP_NOMOVE | SWP_NOSIZE;
         private const int WS_EX_NOACTIVATE = 0x08000000;
 
         private WindowRenderTarget device;
@@ -47,7 +54,7 @@ namespace DirectX_Renderer.GUI
         #region dll imports
 
         [DllImport("dwmapi.dll")]
-        public static extern void DwmExtendFrameIntoClientArea(IntPtr hWnd, ref int[] pMargins);
+        private static extern void DwmExtendFrameIntoClientArea(IntPtr hWnd, ref int[] pMargins);
 
         #endregion
 
@@ -58,6 +65,9 @@ namespace DirectX_Renderer.GUI
         }
 
         // we need this function to dont have an StackOverflowException
+        /// <summary>
+        /// This event is called when game process is closed
+        /// </summary>
         public void OnExeClose() { }
 
         public new void OnLoad(object sender, EventArgs e)
@@ -128,7 +138,6 @@ namespace DirectX_Renderer.GUI
             int[] marg = new int[] { 0, 0, Width, Height };
             DwmExtendFrameIntoClientArea(this.Handle, ref marg);
         }
-
 
     }
 }

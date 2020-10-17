@@ -42,6 +42,15 @@ namespace DirectX_Renderer
             return Screen.FromControl(referenceControl).Bounds;
         }
 
+        public static System.Drawing.Rectangle GetScreenInvoke(Control referenceControl)
+        {
+            System.Drawing.Rectangle rec = new System.Drawing.Rectangle();
+            referenceControl.Invoke((MethodInvoker)delegate {
+                rec = Screen.FromControl(referenceControl).Bounds;
+            });
+            return rec;
+        }
+
         public static Bitmap LoadFromFile(RenderTarget renderTarget, string file)
         {
             // Loads from file using System.Drawing.Image

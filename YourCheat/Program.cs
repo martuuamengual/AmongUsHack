@@ -113,8 +113,8 @@ namespace YourCheat
                 {
 
                     // Starts the GUI
-                    ValuesDx3_Controller.StartGUI();
-                    MenuDx3_Controller.StartGUI();
+                    //GUIStarter.Init<ValuesDx3>();
+                    GUIStarter.Init<MenuDx3>();
 
 
                     // Update Player Data When Every Game

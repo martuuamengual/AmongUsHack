@@ -38,14 +38,6 @@
 
             this.Load += new System.EventHandler(this.OnLoad);
 
-
-            /*this.panel1 = new System.Windows.Forms.Panel();
-            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                | System.Windows.Forms.AnchorStyles.Right);
-            this.panel1.BackColor = System.Drawing.Color.Red;
-            this.panel1.Location = new System.Drawing.Point(16, 160);
-            this.panel1.Size = new System.Drawing.Size(500, 300);*/
-
             this.ResumeLayout(false);
             this.PerformLayout();
 
